@@ -35,6 +35,46 @@ const setup = async function (accounts,founderToken,founderReputation,useUContro
 
 contract('DaoCreator', function(accounts) {
 
+    it('forgeOrg uses up exactly the estimated gas limit', async () => {
+        const controllerCreator = await ControllerCreator.new({gas: constants.GENESIS_SCHEME_GAS_LIMIT});
+        const daoCreator = await DaoCreator.new(controllerCreator.address,{gas:constants.GENESIS_SCHEME_GAS_LIMIT});
+        const gas = await daoCreator.forgeOrg.estimateGas("testOrg","TEST","TST",[accounts[0]],[10],[10],0,0, {gas:constants.GENESIS_SCHEME_GAS_LIMIT})
+        const tx = await daoCreator.forgeOrg("testOrg","TEST","TST",[accounts[0]],[10],[10],0,0, {gas:constants.GENESIS_SCHEME_GAS_LIMIT});
+        assert.equal(tx.receipt.gasUsed, gas);
+    })
+
+    it('forgeOrg fails when given exactly the estimated gas limit', async () => {
+        const controllerCreator = await ControllerCreator.new({gas: constants.GENESIS_SCHEME_GAS_LIMIT});
+        const daoCreator = await DaoCreator.new(controllerCreator.address,{gas:constants.GENESIS_SCHEME_GAS_LIMIT});
+        const gas = await daoCreator.forgeOrg.estimateGas("testOrg","TEST","TST",[accounts[0]],[10],[10],0,0, {gas:constants.GENESIS_SCHEME_GAS_LIMIT})
+        try {
+            const tx = await daoCreator.forgeOrg("testOrg","TEST","TST",[accounts[0]],[10],[10],0,0, {gas});
+        }
+        catch(e) {
+            helpers.assertVMException(e);
+        }
+    })
+
+    it('forgeOrg fails when given exactly the estimated gas limit + 20000', async () => {
+        const controllerCreator = await ControllerCreator.new({gas: constants.GENESIS_SCHEME_GAS_LIMIT});
+        const daoCreator = await DaoCreator.new(controllerCreator.address,{gas:constants.GENESIS_SCHEME_GAS_LIMIT});
+        const gas = await daoCreator.forgeOrg.estimateGas("testOrg","TEST","TST",[accounts[0]],[10],[10],0,0, {gas:constants.GENESIS_SCHEME_GAS_LIMIT})
+        try {
+            const tx = await daoCreator.forgeOrg("testOrg","TEST","TST",[accounts[0]],[10],[10],0,0, {gas: gas + 20000});
+        }
+        catch(e) {
+            helpers.assertVMException(e);
+        }
+    })
+
+    it('forgeOrg passes when given exactly the estimated gas limit + 21000 but still uses up exactly the estimated gas limit', async () => {
+        const controllerCreator = await ControllerCreator.new({gas: constants.GENESIS_SCHEME_GAS_LIMIT});
+        const daoCreator = await DaoCreator.new(controllerCreator.address,{gas:constants.GENESIS_SCHEME_GAS_LIMIT});
+        const gas = await daoCreator.forgeOrg.estimateGas("testOrg","TEST","TST",[accounts[0]],[10],[10],0,0, {gas:constants.GENESIS_SCHEME_GAS_LIMIT})
+        const tx = await daoCreator.forgeOrg("testOrg","TEST","TST",[accounts[0]],[10],[10],0,0, {gas: gas + 21000});
+        assert.equal(tx.receipt.gasUsed, gas);
+    })
+
     it("forgeOrg check avatar", async function() {
         await setup(accounts,10,10);
         var orgName = await avatar.orgName();
