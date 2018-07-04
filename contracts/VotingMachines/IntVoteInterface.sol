@@ -60,12 +60,12 @@ interface IntVoteInterface {
     function isVotable(bytes32 _proposalId) external view returns(bool);
 
     /**
-     * @dev voteStatus returns the reputation voted for a proposal for a specific voting choice.
+     * @dev getVoteStatus returns the reputation voted for a proposal for a specific voting choice.
      * @param _proposalId the ID of the proposal
      * @param _choice the index in the
      * @return voted reputation for the given choice
      */
-    function voteStatus(bytes32 _proposalId,uint _choice) external view returns(uint);
+    function getVoteStatus(bytes32 _proposalId,uint _choice) external view returns(uint);
 
     /**
      * @dev isAbstainAllow returns if the voting machine allow abstain (0)

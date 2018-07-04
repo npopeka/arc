@@ -66,7 +66,7 @@ contract Controller is ControllerInterface {
     event ExternalTokenDecreaseApproval (address indexed _sender, StandardToken indexed _externalToken, address _spender, uint _value);
     event UpgradeController(address indexed _oldController,address _newController);
     event AddGlobalConstraint(address indexed _globalConstraint, bytes32 _params,GlobalConstraintInterface.CallPhase _when);
-    event RemoveGlobalConstraint(address indexed _globalConstraint ,uint256 _index,bool _isPre);
+    event RemoveGlobalConstraint(address indexed _globalConstraint ,uint256 _index,bool _isValidPre);
 
     constructor( Avatar _avatar) public
     {
@@ -110,11 +110,11 @@ contract Controller is ControllerInterface {
     modifier onlySubjectToConstraint(bytes32 func) {
         uint idx;
         for (idx = 0;idx<globalConstraintsPre.length;idx++) {
-            require((GlobalConstraintInterface(globalConstraintsPre[idx].gcAddress)).pre(msg.sender,globalConstraintsPre[idx].params,func));
+            require((GlobalConstraintInterface(globalConstraintsPre[idx].gcAddress)).isValidPre(msg.sender,globalConstraintsPre[idx].params,func));
         }
         _;
         for (idx = 0;idx<globalConstraintsPost.length;idx++) {
-            require((GlobalConstraintInterface(globalConstraintsPost[idx].gcAddress)).post(msg.sender,globalConstraintsPost[idx].params,func));
+            require((GlobalConstraintInterface(globalConstraintsPost[idx].gcAddress)).isValidPost(msg.sender,globalConstraintsPost[idx].params,func));
         }
     }
 
@@ -258,7 +258,7 @@ contract Controller is ControllerInterface {
     }
 
     function getGlobalConstraintParameters(address _globalConstraint,address) external view returns(bytes32) {
-        
+
         GlobalConstraintRegister memory register = globalConstraintsRegisterPre[_globalConstraint];
 
         if (register.isRegistered) {
@@ -277,7 +277,7 @@ contract Controller is ControllerInterface {
     * @return uint globalConstraintsPre count.
     * @return uint globalConstraintsPost count.
     */
-    function globalConstraintsCount(address _avatar)
+    function getGlobalConstraintsCount(address _avatar)
         isAvatarValid(_avatar)
         external
         view

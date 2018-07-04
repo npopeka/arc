@@ -201,7 +201,7 @@ contract('ContributionReward', function(accounts) {
         assert.equal(tx.logs.length, 1);
         assert.equal(tx.logs[0].event, "RedeemReputation");
         assert.equal(tx.logs[0].args._amount, reputationReward);
-        var rep = await testSetup.org.reputation.reputationOf(accounts[1]);
+        var rep = await testSetup.org.reputation.getReputationOf(accounts[1]);
         assert.equal(rep.toNumber(),reputationReward);
        });
 
@@ -439,7 +439,7 @@ contract('ContributionReward', function(accounts) {
                   assert.equal(tx.logs.length, 1);
                   assert.equal(tx.logs[0].event, "RedeemReputation");
                   assert.equal(tx.logs[0].args._amount, reputationReward);
-                  var rep = await testSetup.org.reputation.reputationOf(accounts[0]);
+                  var rep = await testSetup.org.reputation.getReputationOf(accounts[0]);
                   assert.equal(rep.toNumber(),1000+reputationReward);
                  });
 
@@ -514,9 +514,9 @@ contract('ContributionReward', function(accounts) {
                      await arcUtils.redeem(proposalId,testSetup.org.avatar.address,accounts[0]);
                      var eth = web3.eth.getBalance(otherAvatar.address);
                      assert.equal(eth.toNumber(),ethReward);
-                     assert.equal(await testSetup.org.reputation.reputationOf(otherAvatar.address),reputationReward);
+                     assert.equal(await testSetup.org.reputation.getReputationOf(otherAvatar.address),reputationReward);
                      assert.equal(await testSetup.org.token.balanceOf(otherAvatar.address),nativeTokenReward);
-                     var reputation = await testSetup.org.reputation.reputationOf(accounts[0]);
+                     var reputation = await testSetup.org.reputation.getReputationOf(accounts[0]);
                      assert.equal(reputation,1141);
                     });
 

@@ -31,10 +31,10 @@ const setup = async function (permission='0') {
 
 const constraint = async function (method, pre=false, post=false) {
   var globalConstraints = await GlobalConstraintMock.new();
-  let globalConstraintsCountOrig = await controller.globalConstraintsCount(avatar.address);
+  let globalConstraintsCountOrig = await controller.getGlobalConstraintsCount(avatar.address);
   await globalConstraints.setConstraint(method,pre,post);
   await controller.addGlobalConstraint(globalConstraints.address,0,avatar.address);
-  let globalConstraintsCount =await controller.globalConstraintsCount(avatar.address);
+  let globalConstraintsCount =await controller.getGlobalConstraintsCount(avatar.address);
   assert.equal(globalConstraintsCount[0].toNumber(),globalConstraintsCountOrig[0].toNumber() + (pre ? 0 : 1));
   assert.equal(globalConstraintsCount[1].toNumber(),globalConstraintsCountOrig[1].toNumber() + (post ? 0 : 1));
   return globalConstraints;
@@ -68,7 +68,7 @@ contract('Controller', function (accounts)  {
         assert.equal(tx.logs[0].event, "MintReputation");
         assert.equal(tx.logs[0].args._amount, amountToMint);
         assert.equal(tx.logs[0].args._to, accounts[0]);
-        let rep = await reputation.reputationOf(accounts[0]);
+        let rep = await reputation.getReputationOf(accounts[0]);
         assert.equal(rep,amountToMint);
     });
 
@@ -81,7 +81,7 @@ contract('Controller', function (accounts)  {
         assert.equal(tx.logs[0].event, "BurnReputation");
         assert.equal(tx.logs[0].args._amount, amountToMint-1);
         assert.equal(tx.logs[0].args._from, accounts[0]);
-        let rep = await reputation.reputationOf(accounts[0]);
+        let rep = await reputation.getReputationOf(accounts[0]);
         assert.equal(rep,1);
     });
 
@@ -232,7 +232,7 @@ contract('Controller', function (accounts)  {
         assert.equal(await controller.isGlobalConstraintRegistered(globalConstraints.address,avatar.address),true);
         assert.equal(tx.logs.length, 1);
         assert.equal(tx.logs[0].event, "AddGlobalConstraint");
-        var count = await controller.globalConstraintsCount(avatar.address);
+        var count = await controller.getGlobalConstraintsCount(avatar.address);
         assert.equal(count[0], 1); //pre
         assert.equal(count[1], 1); //post
        });
@@ -264,14 +264,14 @@ contract('Controller', function (accounts)  {
          assert.equal(await controller.isGlobalConstraintRegistered(globalConstraints3.address,avatar.address),true);
          assert.equal(await controller.isGlobalConstraintRegistered(globalConstraints4.address,avatar.address),true);
 
-         let gcCount = await controller.globalConstraintsCount(avatar.address);
+         let gcCount = await controller.getGlobalConstraintsCount(avatar.address);
 
          assert.equal(gcCount[0],4);
          assert.equal(gcCount[1],4);
 
          await controller.removeGlobalConstraint(globalConstraints4.address,avatar.address);
          assert.equal(await controller.isGlobalConstraintRegistered(globalConstraints4.address,avatar.address),false);
-         gcCount = await controller.globalConstraintsCount(avatar.address);
+         gcCount = await controller.getGlobalConstraintsCount(avatar.address);
          assert.equal(gcCount[0],3);
          assert.equal(gcCount[1],3);
         });
@@ -396,7 +396,7 @@ contract('Controller', function (accounts)  {
             helpers.assertVMException(ex);
           }
           await controller.removeGlobalConstraint(globalConstraints.address,avatar.address);
-          var globalConstraintsCount =await controller.globalConstraintsCount(avatar.address);
+          var globalConstraintsCount =await controller.getGlobalConstraintsCount(avatar.address);
           assert.equal(globalConstraintsCount[0],0);
           assert.equal(globalConstraintsCount[1],0);
           let tx = await controller.mintReputation(amountToMint,accounts[0],avatar.address);
@@ -404,7 +404,7 @@ contract('Controller', function (accounts)  {
           assert.equal(tx.logs[0].event, "MintReputation");
           assert.equal(tx.logs[0].args._amount, amountToMint);
           assert.equal(tx.logs[0].args._to, accounts[0]);
-          let rep = await reputation.reputationOf(accounts[0]);
+          let rep = await reputation.getReputationOf(accounts[0]);
           assert.equal(rep,amountToMint);
           });
 
@@ -421,7 +421,7 @@ contract('Controller', function (accounts)  {
               helpers.assertVMException(ex);
             }
             await controller.removeGlobalConstraint(globalConstraints.address,avatar.address);
-            var globalConstraintsCount =await controller.globalConstraintsCount(avatar.address);
+            var globalConstraintsCount =await controller.getGlobalConstraintsCount(avatar.address);
             assert.equal(globalConstraintsCount[0],0);
             assert.equal(globalConstraintsCount[1],0);
             let tx =  await controller.mintTokens(amountToMint,accounts[0],avatar.address);
@@ -443,7 +443,7 @@ contract('Controller', function (accounts)  {
                 helpers.assertVMException(ex);
               }
               await controller.removeGlobalConstraint(globalConstraints.address,avatar.address);
-              var globalConstraintsCount =await controller.globalConstraintsCount(avatar.address);
+              var globalConstraintsCount =await controller.getGlobalConstraintsCount(avatar.address);
               assert.equal(globalConstraintsCount[0],0);
               assert.equal(globalConstraintsCount[1],0);
               let tx =  await controller.registerScheme(accounts[1], 0,0,avatar.address);
@@ -462,7 +462,7 @@ contract('Controller', function (accounts)  {
                    helpers.assertVMException(ex);
                  }
                  await controller.removeGlobalConstraint(globalConstraints.address,avatar.address);
-                 var globalConstraintsCount =await controller.globalConstraintsCount(avatar.address);
+                 var globalConstraintsCount =await controller.getGlobalConstraintsCount(avatar.address);
                  assert.equal(globalConstraintsCount[0],0);
                  assert.equal(globalConstraintsCount[1],0);
                  let tx =  await controller.unregisterScheme(accounts[0],avatar.address);
@@ -482,7 +482,7 @@ contract('Controller', function (accounts)  {
                       helpers.assertVMException(ex);
                     }
                     await controller.removeGlobalConstraint(globalConstraints.address,avatar.address);
-                    var globalConstraintsCount =await controller.globalConstraintsCount(avatar.address);
+                    var globalConstraintsCount =await controller.getGlobalConstraintsCount(avatar.address);
                     assert.equal(globalConstraintsCount[0],0);
                     assert.equal(globalConstraintsCount[1],0);
                     var tx =  await controller.genericAction([0],avatar.address);
@@ -505,7 +505,7 @@ contract('Controller', function (accounts)  {
                          helpers.assertVMException(ex);
                        }
                        await controller.removeGlobalConstraint(globalConstraints.address,avatar.address);
-                       var globalConstraintsCount =await controller.globalConstraintsCount(avatar.address);
+                       var globalConstraintsCount =await controller.getGlobalConstraintsCount(avatar.address);
                        assert.equal(globalConstraintsCount[0],0);
                        var tx = await controller.sendEther(web3.toWei('1', "ether"),otherAvatar.address,avatar.address);
                        assert.equal(tx.logs.length, 1);
@@ -532,7 +532,7 @@ contract('Controller', function (accounts)  {
                             helpers.assertVMException(ex);
                           }
                           await controller.removeGlobalConstraint(globalConstraints.address,avatar.address);
-                          var globalConstraintsCount =await controller.globalConstraintsCount(avatar.address);
+                          var globalConstraintsCount =await controller.getGlobalConstraintsCount(avatar.address);
                           assert.equal(globalConstraintsCount[0],0);
                           var tx = await controller.externalTokenTransfer(standardToken.address,accounts[1],50,avatar.address);
                           assert.equal(tx.logs.length, 1);
@@ -559,7 +559,7 @@ contract('Controller', function (accounts)  {
                                helpers.assertVMException(ex);
                              }
                              await controller.removeGlobalConstraint(globalConstraints.address,avatar.address);
-                             var globalConstraintsCount =await controller.globalConstraintsCount(avatar.address);
+                             var globalConstraintsCount =await controller.getGlobalConstraintsCount(avatar.address);
                              assert.equal(globalConstraintsCount[0],0);
 
                              tx = await controller.externalTokenIncreaseApproval(standardToken.address,avatar.address,50,avatar.address);
@@ -574,7 +574,7 @@ contract('Controller', function (accounts)  {
                                helpers.assertVMException(ex);
                              }
                              await controller.removeGlobalConstraint(globalConstraints.address,avatar.address);
-                             globalConstraintsCount =await controller.globalConstraintsCount(avatar.address);
+                             globalConstraintsCount =await controller.getGlobalConstraintsCount(avatar.address);
                              assert.equal(globalConstraintsCount[0],0);
 
 
@@ -623,7 +623,7 @@ contract('Controller', function (accounts)  {
                                   helpers.assertVMException(ex);
                                 }
                                 await controller.removeGlobalConstraint(globalConstraints.address,avatar.address);
-                                var globalConstraintsCount =await controller.globalConstraintsCount(avatar.address);
+                                var globalConstraintsCount =await controller.getGlobalConstraintsCount(avatar.address);
                                 assert.equal(globalConstraintsCount[0],0);
                                 var tx = await controller.externalTokenTransfer(standardToken.address,accounts[1],50,avatar.address);
                                 assert.equal(tx.logs.length, 1);

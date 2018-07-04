@@ -82,7 +82,7 @@ contract UController is ControllerInterface {
         GlobalConstraintInterface.CallPhase _when,
         address indexed _avatar
     );
-    event RemoveGlobalConstraint(address indexed _globalConstraint ,uint256 _index,bool _isPre,address indexed _avatar);
+    event RemoveGlobalConstraint(address indexed _globalConstraint ,uint256 _index,bool _isValidPre,address indexed _avatar);
 
 
    /**
@@ -139,11 +139,11 @@ contract UController is ControllerInterface {
         GlobalConstraint[] memory globalConstraintsPre = organizations[_avatar].globalConstraintsPre;
         GlobalConstraint[] memory globalConstraintsPost = organizations[_avatar].globalConstraintsPost;
         for (idx = 0;idx<globalConstraintsPre.length;idx++) {
-            require((GlobalConstraintInterface(globalConstraintsPre[idx].gcAddress)).pre(msg.sender, globalConstraintsPre[idx].params, func));
+            require((GlobalConstraintInterface(globalConstraintsPre[idx].gcAddress)).isValidPre(msg.sender, globalConstraintsPre[idx].params, func));
         }
         _;
         for (idx = 0;idx<globalConstraintsPost.length;idx++) {
-            require((GlobalConstraintInterface(globalConstraintsPost[idx].gcAddress)).post(msg.sender, globalConstraintsPost[idx].params, func));
+            require((GlobalConstraintInterface(globalConstraintsPost[idx].gcAddress)).isValidPost(msg.sender, globalConstraintsPost[idx].params, func));
         }
     }
 
@@ -302,7 +302,7 @@ contract UController is ControllerInterface {
    * @return uint globalConstraintsPre count.
    * @return uint globalConstraintsPost count.
    */
-    function globalConstraintsCount(address _avatar) external view returns(uint,uint) {
+    function getGlobalConstraintsCount(address _avatar) external view returns(uint,uint) {
         return (organizations[_avatar].globalConstraintsPre.length,organizations[_avatar].globalConstraintsPost.length);
     }
 

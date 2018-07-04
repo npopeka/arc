@@ -85,7 +85,7 @@ interface ControllerInterface {
      * @return uint globalConstraintsPre count.
      * @return uint globalConstraintsPost count.
      */
-    function globalConstraintsCount(address _avatar) external view returns(uint,uint);
+    function getGlobalConstraintsCount(address _avatar) external view returns(uint,uint);
 
     function isGlobalConstraintRegistered(address _globalConstraint,address _avatar) external view returns(bool);
 

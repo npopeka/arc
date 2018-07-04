@@ -161,7 +161,7 @@ Params:
 
 1. **_globalConstraint** *of type `address`*
 2. **_index** *of type `uint256`*
-3. **_isPre** *of type `bool`*
+3. **_isValidPre** *of type `bool`*
 
 --- 
 ### SendEther(address,uint256,address)

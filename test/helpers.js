@@ -229,7 +229,7 @@ export const setupOrganization = async function (daoCreator,daoCreatorOwner,foun
 
 export const checkVoteInfo = async function(absoluteVote,proposalId, voterAddress, _voteInfo) {
   let voteInfo;
-  voteInfo = await absoluteVote.voteInfo(proposalId, voterAddress);
+  voteInfo = await absoluteVote.getVoteInfo(proposalId, voterAddress);
   // voteInfo has the following structure
   // int vote;
   assert.equal(voteInfo[0], _voteInfo[0]);
@@ -242,7 +242,7 @@ export const checkVotesStatus = async function(proposalId, _votesStatus,votingMa
 
   let voteStatus;
   for (var i = 0; i < _votesStatus.length; i++) {
-      voteStatus = await votingMachine.voteStatus(proposalId,i);
+      voteStatus = await votingMachine.getVoteStatus(proposalId,i);
       assert.equal(voteStatus, _votesStatus[i]);
   }
 };

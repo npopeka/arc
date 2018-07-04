@@ -157,24 +157,24 @@ contract AbsoluteVote is IntVoteInterface {
     }
 
   /**
-   * @dev voteInfo returns the vote and the amount of reputation of the user committed to this proposal
+   * @dev getVoteInfo returns the vote and the amount of reputation of the user committed to this proposal
    * @param _proposalId the ID of the proposal
    * @param _voter the address of the voter
    * @return uint vote - the voters vote
    *        uint reputation - amount of reputation committed by _voter to _proposalId
    */
-    function voteInfo(bytes32 _proposalId, address _voter) external view returns(uint, uint) {
+    function getVoteInfo(bytes32 _proposalId, address _voter) external view returns(uint, uint) {
         Voter memory voter = proposals[_proposalId].voters[_voter];
         return (voter.vote, voter.reputation);
     }
 
     /**
-     * @dev voteStatus returns the reputation voted for a proposal for a specific voting choice.
+     * @dev getVoteStatus returns the reputation voted for a proposal for a specific voting choice.
      * @param _proposalId the ID of the proposal
      * @param _choice the index in the
      * @return voted reputation for the given choice
      */
-    function voteStatus(bytes32 _proposalId,uint _choice) external view returns(uint) {
+    function getVoteStatus(bytes32 _proposalId,uint _choice) external view returns(uint) {
         return proposals[_proposalId].votes[_choice];
     }
 
@@ -211,7 +211,7 @@ contract AbsoluteVote is IntVoteInterface {
             if (voter.reputation > 0) {
                 //update only if there is a mismatch between the voter's system reputation
                 //and the reputation stored in the voting machine for the voter.
-                uint rep = params.reputationSystem.reputationOf(_voters[i]);
+                uint rep = params.reputationSystem.getReputationOf(_voters[i]);
                 if (rep > voter.reputation) {
                     proposal.votes[voter.vote] = proposal.votes[voter.vote].add(rep - voter.reputation);
                     proposal.totalVotes = (proposal.totalVotes).add(rep - voter.reputation);
@@ -315,7 +315,7 @@ contract AbsoluteVote is IntVoteInterface {
         // Check valid vote:
         require(_vote <= proposal.numOfChoices);
         // Check voter has enough reputation:
-        uint reputation = params.reputationSystem.reputationOf(_voter);
+        uint reputation = params.reputationSystem.getReputationOf(_voter);
         require(reputation >= _rep);
         uint rep = _rep;
         if (rep == 0) {

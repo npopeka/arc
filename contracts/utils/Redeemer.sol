@@ -47,14 +47,14 @@ contract Redeemer {
     external
     returns(bool[7] result)
     {
-        GenesisProtocol.ProposalState pState = genesisProtocol.state(_proposalId);
+        GenesisProtocol.ProposalState pState = genesisProtocol.getState(_proposalId);
         // solium-disable-next-line operator-whitespace
         if ((pState == GenesisProtocol.ProposalState.PreBoosted)||
             (pState == GenesisProtocol.ProposalState.Boosted)||
             (pState == GenesisProtocol.ProposalState.QuietEndingPeriod)) {
             result[0] = genesisProtocol.execute(_proposalId);
         }
-        pState = genesisProtocol.state(_proposalId);
+        pState = genesisProtocol.getState(_proposalId);
         if ((pState == GenesisProtocol.ProposalState.Executed) ||
             (pState == GenesisProtocol.ProposalState.Closed)) {
             result[1] = genesisProtocol.redeem(_proposalId,_beneficiary);

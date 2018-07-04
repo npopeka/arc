@@ -56,7 +56,7 @@ const checkVotesStatus = async function(proposalId, _votesStatus){
 
 const checkVoteInfo = async function(proposalId, voterAddress, _voteInfo) {
   let voteInfo;
-  voteInfo = await quorumVote.voteInfo(proposalId, voterAddress);
+  voteInfo = await quorumVote.getVoteInfo(proposalId, voterAddress);
   // voteInfo has the following structure
   // int vote;
   assert.equal(voteInfo[0], _voteInfo[0]);

@@ -265,24 +265,24 @@ contract GenesisProtocol is IntVoteInterface,UniversalScheme {
     }
 
     /**
-     * @dev voteInfo returns the vote and the amount of reputation of the user committed to this proposal
+     * @dev getVoteInfo returns the vote and the amount of reputation of the user committed to this proposal
      * @param _proposalId the ID of the proposal
      * @param _voter the address of the voter
      * @return uint vote - the voters vote
      *        uint reputation - amount of reputation committed by _voter to _proposalId
      */
-    function voteInfo(bytes32 _proposalId, address _voter) external view returns(uint, uint) {
+    function getVoteInfo(bytes32 _proposalId, address _voter) external view returns(uint, uint) {
         Voter memory voter = proposals[_proposalId].voters[_voter];
         return (voter.vote, voter.reputation);
     }
 
     /**
-    * @dev voteStatus returns the reputation voted for a proposal for a specific voting choice.
+    * @dev getVoteStatus returns the reputation voted for a proposal for a specific voting choice.
     * @param _proposalId the ID of the proposal
     * @param _choice the index in the
     * @return voted reputation for the given choice
     */
-    function voteStatus(bytes32 _proposalId,uint _choice) external view returns(uint) {
+    function getVoteStatus(bytes32 _proposalId,uint _choice) external view returns(uint) {
         return proposals[_proposalId].votes[_choice];
     }
 
@@ -296,14 +296,14 @@ contract GenesisProtocol is IntVoteInterface,UniversalScheme {
     }
 
     /**
-    * @dev proposalStatus return the total votes and stakes for a given proposal
+    * @dev getProposalStatus return the total votes and stakes for a given proposal
     * @param _proposalId the ID of the proposal
     * @return uint totalVotes
     * @return uint stakersStakes
     * @return uint totalRedeemableStakes
     * @return uint voterStakes
     */
-    function proposalStatus(bytes32 _proposalId) external view returns(uint, uint, uint,uint) {
+    function getProposalStatus(bytes32 _proposalId) external view returns(uint, uint, uint,uint) {
         return (proposals[_proposalId].totalVotes,
                 proposals[_proposalId].totalStakes[0],
                 proposals[_proposalId].totalStakes[1],
@@ -312,63 +312,63 @@ contract GenesisProtocol is IntVoteInterface,UniversalScheme {
     }
 
   /**
-    * @dev proposalAvatar return the avatar for a given proposal
+    * @dev getProposalAvatar return the avatar for a given proposal
     * @param _proposalId the ID of the proposal
     * @return uint total reputation supply
     */
-    function proposalAvatar(bytes32 _proposalId) external view returns(address) {
+    function getProposalAvatar(bytes32 _proposalId) external view returns(address) {
         return (proposals[_proposalId].avatar);
     }
 
   /**
-    * @dev scoreThresholdParams return the score threshold params for a given
+    * @dev getScoreThresholdParams return the score threshold params for a given
     * organization.
     * @param _avatar the organization's avatar
     * @return uint thresholdConstA
     * @return uint thresholdConstB
     */
-    function scoreThresholdParams(address _avatar) external view returns(uint,uint) {
+    function getScoreThresholdParams(address _avatar) external view returns(uint,uint) {
         bytes32 paramsHash = getParametersFromController(Avatar(_avatar));
         Parameters memory params = parameters[paramsHash];
         return (params.thresholdConstA,params.thresholdConstB);
     }
 
     /**
-      * @dev staker return the vote and stake amount for a given proposal and staker
+      * @dev getStakeInfo return the vote and stake amount for a given proposal and staker
       * @param _proposalId the ID of the proposal
       * @param _staker staker address
       * @return uint vote
       * @return uint amount
     */
-    function staker(bytes32 _proposalId,address _staker) external view returns(uint,uint) {
+    function getStakeInfo(bytes32 _proposalId,address _staker) external view returns(uint,uint) {
         return (proposals[_proposalId].stakers[_staker].vote,proposals[_proposalId].stakers[_staker].amount);
     }
 
     /**
-      * @dev voteStake return the amount stakes for a given proposal and vote
+      * @dev getVoteStake return the amount stakes for a given proposal and vote
       * @param _proposalId the ID of the proposal
       * @param _vote vote number
       * @return uint stake amount
     */
-    function voteStake(bytes32 _proposalId,uint _vote) external view returns(uint) {
+    function getVoteStake(bytes32 _proposalId,uint _vote) external view returns(uint) {
         return proposals[_proposalId].stakes[_vote];
     }
 
   /**
-    * @dev voteStake return the winningVote for a given proposal
+    * @dev getWinningVote return the winningVote for a given proposal
     * @param _proposalId the ID of the proposal
     * @return uint winningVote
     */
-    function winningVote(bytes32 _proposalId) external view returns(uint) {
+    function getWinningVote(bytes32 _proposalId) external view returns(uint) {
         return proposals[_proposalId].winningVote;
     }
 
     /**
-      * @dev voteStake return the state for a given proposal
+      * @dev getState return the state for a given proposal
       * @param _proposalId the ID of the proposal
       * @return ProposalState proposal state
     */
-    function state(bytes32 _proposalId) external view returns(ProposalState) {
+    function getState(bytes32 _proposalId) external view returns(ProposalState) {
         return proposals[_proposalId].state;
     }
 
@@ -532,26 +532,26 @@ contract GenesisProtocol is IntVoteInterface,UniversalScheme {
      */
     function shouldBoost(bytes32 _proposalId) public view returns(bool) {
         address avatar = proposals[_proposalId].avatar;
-        return (_score(_proposalId) >= threshold(_proposalId,avatar));
+        return (_score(_proposalId) >= getThreshold(_proposalId,avatar));
     }
 
     /**
-     * @dev score return the proposal score
+     * @dev getScore return the proposal score
      * @param _proposalId the ID of the proposal
      * @return uint proposal score.
      */
-    function score(bytes32 _proposalId) public view returns(int) {
+    function getScore(bytes32 _proposalId) public view returns(int) {
         return _score(_proposalId);
     }
 
     /**
-     * @dev threshold return the organization's score threshold which required by
+     * @dev getThreshold return the organization's score threshold which required by
      * a proposal to shift to boosted state.
      * This threshold is dynamically set and it depend on the number of boosted proposal.
      * @param _avatar the organization avatar
      * @return int organization's score threshold.
      */
-    function threshold(bytes32 _proposalId,address _avatar) public view returns(int) {
+    function getThreshold(bytes32 _proposalId,address _avatar) public view returns(int) {
         uint expiredProposals;
         if (proposalsExpiredTimes[_avatar].count() != 0) {
           // solium-disable-next-line security/no-block-members
@@ -840,7 +840,7 @@ contract GenesisProtocol is IntVoteInterface,UniversalScheme {
         Proposal storage proposal = proposals[_proposalId];
 
         // Check voter has enough reputation:
-        uint reputation = Avatar(proposal.avatar).nativeReputation().reputationOf(_voter);
+        uint reputation = Avatar(proposal.avatar).nativeReputation().getReputationOf(_voter);
         require(reputation >= _rep);
         uint rep = _rep;
         if (rep == 0) {

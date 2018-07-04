@@ -163,7 +163,7 @@ Params:
 
 1. **_globalConstraint** *of type `address`*
 2. **_index** *of type `uint256`*
-3. **_isPre** *of type `bool`*
+3. **_isValidPre** *of type `bool`*
 4. **_avatar** *of type `address`*
 
 --- 

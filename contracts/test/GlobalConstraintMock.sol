@@ -29,11 +29,11 @@ contract GlobalConstraintMock {
         return true;
     }
 
-    function pre(address, bytes32, bytes32 method) public view returns(bool) {
+    function isValidPre(address, bytes32, bytes32 method) public view returns(bool) {
         return testParams[method].pre;
     }
 
-    function post(address, bytes32 , bytes32 method) public view returns(bool) {
+    function isValidPost(address, bytes32 , bytes32 method) public view returns(bool) {
         return testParams[method].post;
     }
 
