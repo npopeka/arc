@@ -227,6 +227,25 @@ export const setupOrganization = async function (daoCreator,daoCreatorOwner,foun
 };
 
 
+export const setupOrganization2 = async function (daoCreator,controller=0,cap=0) {
+  var org = new Organization();
+  var accounts = web3.eth.accounts;
+  var tx = await daoCreator.forgeOrg("testOrg","TEST","TST",
+  [accounts[0],accounts[1]],
+  [1000, 1000],
+  [1000, 100],
+  controller,cap,{gas: constants.ARC_GAS_LIMIT});
+  assert.equal(tx.logs.length, 1);
+  assert.equal(tx.logs[0].event, "NewOrg");
+  var avatarAddress = tx.logs[0].args._avatar;
+  org.avatar = await Avatar.at(avatarAddress);
+  var tokenAddress = await org.avatar.nativeToken();
+  org.token = await DAOToken.at(tokenAddress);
+  var reputationAddress = await org.avatar.nativeReputation();
+  org.reputation = await Reputation.at(reputationAddress);
+  return org;
+};
+
 export const checkVoteInfo = async function(absoluteVote,proposalId, voterAddress, _voteInfo) {
   let voteInfo;
   voteInfo = await absoluteVote.voteInfo(proposalId, voterAddress);
