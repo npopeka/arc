@@ -488,77 +488,78 @@ contract('ContributionReward', function(accounts) {
 
                    });
 
-                   it("execute proposeContributionReward via genesisProtocol and redeem using Redeemer and non-executed proposal", async function() {
-                     var standardTokenMock = await StandardTokenMock.new(accounts[0],1000);
-                     var testSetup = await setup(accounts,0,[accounts[0], accounts[1]], [1000,1000], [1000,100],true,standardTokenMock.address);
-                     var reputationReward = 12;
-                     var nativeTokenReward = 12;
-                     var ethReward = 12;
-                     var periodLength = 50;
-                     var numberOfPeriods = 1;
-                     //send some ether to the org avatar
-                     var otherAvatar = await Avatar.new('otheravatar', helpers.NULL_ADDRESS, helpers.NULL_ADDRESS);
-                     web3.eth.sendTransaction({from:accounts[0],to:testSetup.org.avatar.address, value:20});
-                     var tx = await testSetup.contributionReward.proposeContributionReward(testSetup.org.avatar.address,
-                                                                                    "description",
-                                                                                    reputationReward,
-                                                                                    [nativeTokenReward,ethReward,0,periodLength,numberOfPeriods],
-                                                                                    testSetup.standardTokenMock.address,
-                                                                                    otherAvatar.address
-                                                                                  );
-                     //Vote with reputation to trigger execution
-                     var proposalId = await helpers.getValueFromLogs(tx, '_proposalId',1);
-                     await standardTokenMock.approve(testSetup.contributionRewardParams.votingMachine.genesisProtocol.address,10);
-                     await testSetup.contributionRewardParams.votingMachine.genesisProtocol.stake(proposalId,1,10);
-                     var proposalInfo = await testSetup.contributionRewardParams.votingMachine.genesisProtocol.proposals(proposalId);
-                     assert(proposalInfo[8].eq(4), `not boosted: ${proposalInfo[8].toNumber()}`);
-                     await testSetup.contributionRewardParams.votingMachine.genesisProtocol.vote(proposalId,1,{from:accounts[1]});
-                     await helpers.increaseTime(periodLength+1 + 2000);
-                     var arcUtils = await Redeemer.new(testSetup.contributionReward.address,testSetup.contributionRewardParams.votingMachine.genesisProtocol.address);
-                     proposalInfo = await testSetup.contributionRewardParams.votingMachine.genesisProtocol.proposals(proposalId);
-                     assert(!proposalInfo[8].eq(1) && !proposalInfo[8].eq(2), `shouldn't be executed: ${proposalInfo[8].toNumber()}`);// neither executed nor closed
-                     await arcUtils.redeem(proposalId,testSetup.org.avatar.address,accounts[0]);
-                     proposalInfo = await testSetup.contributionRewardParams.votingMachine.genesisProtocol.proposals(proposalId);
-                     assert(proposalInfo[8].eq(2), `not executed: ${proposalInfo[8].toNumber()}`);// executed
-                     var eth = web3.eth.getBalance(otherAvatar.address);
-                     assert.equal(eth.toNumber(),ethReward);
-                     assert.equal(await testSetup.org.reputation.reputationOf(otherAvatar.address),reputationReward);
-                     assert.equal(await testSetup.org.token.balanceOf(otherAvatar.address),nativeTokenReward);
-                     var reputation = await testSetup.org.reputation.reputationOf(accounts[0]);
-                     assert.equal(reputation,1141);
-                    });
+                it("execute proposeContributionReward via genesisProtocol and redeem using Redeemer and non-executed proposal", async function() {
+                    var standardTokenMock = await StandardTokenMock.new(accounts[0],1000);
+                    var testSetup = await setup(accounts,0,[accounts[0], accounts[1]], [1000,1000], [1000,100],true,standardTokenMock.address);
+                    var reputationReward = 12;
+                    var nativeTokenReward = 12;
+                    var ethReward = 12;
+                    var periodLength = 0;
+                    var numberOfPeriods = 1;
+                    //send some ether to the org avatar
+                    var otherAvatar = await Avatar.new('otheravatar', helpers.NULL_ADDRESS, helpers.NULL_ADDRESS);
+                    web3.eth.sendTransaction({from:accounts[0],to:testSetup.org.avatar.address, value:20});
+                    var tx = await testSetup.contributionReward.proposeContributionReward(testSetup.org.avatar.address,
+                                                                                "description",
+                                                                                reputationReward,
+                                                                                [nativeTokenReward,ethReward,0,periodLength,numberOfPeriods],
+                                                                                testSetup.standardTokenMock.address,
+                                                                                otherAvatar.address
+                                                                                );
+                    //Vote with reputation to trigger execution
+                    var proposalId = await helpers.getValueFromLogs(tx, '_proposalId',1);
+                    await standardTokenMock.approve(testSetup.contributionRewardParams.votingMachine.genesisProtocol.address,10);
+                    await testSetup.contributionRewardParams.votingMachine.genesisProtocol.stake(proposalId,1,10);
+                    var proposalInfo = await testSetup.contributionRewardParams.votingMachine.genesisProtocol.proposals(proposalId);
+                    assert(proposalInfo[8].eq(4), `not boosted: ${proposalInfo[8].toNumber()}`);
+                    await testSetup.contributionRewardParams.votingMachine.genesisProtocol.vote(proposalId,1,{from:accounts[1]});
+                    // expire the vote periods so will execute
+                    await helpers.increaseTime(130);
+                    var arcUtils = await Redeemer.new(testSetup.contributionReward.address,testSetup.contributionRewardParams.votingMachine.genesisProtocol.address);
+                    proposalInfo = await testSetup.contributionRewardParams.votingMachine.genesisProtocol.proposals(proposalId);
+                    assert(!proposalInfo[8].eq(1) && !proposalInfo[8].eq(2), `shouldn't be executed: ${proposalInfo[8].toNumber()}`);// neither executed nor closed
+                    await arcUtils.redeem(proposalId,testSetup.org.avatar.address,accounts[0]);
+                    proposalInfo = await testSetup.contributionRewardParams.votingMachine.genesisProtocol.proposals(proposalId);
+                    assert(proposalInfo[8].eq(2), `not executed: ${proposalInfo[8].toNumber()}`);// executed
+                    var eth = web3.eth.getBalance(otherAvatar.address);
+                    assert.equal(eth.toNumber(),ethReward);
+                    assert.equal(await testSetup.org.reputation.reputationOf(otherAvatar.address),reputationReward);
+                    assert.equal(await testSetup.org.token.balanceOf(otherAvatar.address),nativeTokenReward);
+                    var reputation = await testSetup.org.reputation.reputationOf(accounts[0]);
+                    assert(reputation.eq(1006), `reputation was not rewarded to accounts[0]: ${reputation.toNumber()}`);
+                });
 
-                   it("execute proposeContributionReward via genesisProtocol and redeem using Redeemer", async function() {
-                     var standardTokenMock = await StandardTokenMock.new(accounts[0],1000);
-                     var testSetup = await setup(accounts,0,true,standardTokenMock.address);
-                     var reputationReward = 12;
-                     var nativeTokenReward = 12;
-                     var ethReward = 12;
-                     var periodLength = 50;
-                     var numberOfPeriods = 1;
-                     //send some ether to the org avatar
-                     var otherAvatar = await Avatar.new('otheravatar', helpers.NULL_ADDRESS, helpers.NULL_ADDRESS);
-                     web3.eth.sendTransaction({from:accounts[0],to:testSetup.org.avatar.address, value:20});
-                     var tx = await testSetup.contributionReward.proposeContributionReward(testSetup.org.avatar.address,
-                                                                                    "description",
-                                                                                    reputationReward,
-                                                                                    [nativeTokenReward,ethReward,0,periodLength,numberOfPeriods],
-                                                                                    testSetup.standardTokenMock.address,
-                                                                                    otherAvatar.address
-                                                                                  );
-                     //Vote with reputation to trigger execution
-                     var proposalId = await helpers.getValueFromLogs(tx, '_proposalId',1);
-                     await testSetup.contributionRewardParams.votingMachine.genesisProtocol.vote(proposalId,1,{from:accounts[0]});
-                     await helpers.increaseTime(periodLength+1);
-                     var arcUtils = await Redeemer.new(testSetup.contributionReward.address,testSetup.contributionRewardParams.votingMachine.genesisProtocol.address);
-                     await arcUtils.redeem(proposalId,testSetup.org.avatar.address,accounts[0]);
-                     var eth = web3.eth.getBalance(otherAvatar.address);
-                     assert.equal(eth.toNumber(),ethReward);
-                     assert.equal(await testSetup.org.reputation.reputationOf(otherAvatar.address),reputationReward);
-                     assert.equal(await testSetup.org.token.balanceOf(otherAvatar.address),nativeTokenReward);
-                     var reputation = await testSetup.org.reputation.reputationOf(accounts[0]);
-                     assert.equal(reputation,1141);
-                    });
+                it("execute proposeContributionReward via genesisProtocol and redeem using Redeemer", async function() {
+                    var standardTokenMock = await StandardTokenMock.new(accounts[0],1000);
+                    var testSetup = await setup(accounts,0,[accounts[0]],[1000],[1000],true,standardTokenMock.address);
+                    var reputationReward = 12;
+                    var nativeTokenReward = 12;
+                    var ethReward = 12;
+                    var periodLength = 50;
+                    var numberOfPeriods = 1;
+                    //send some ether to the org avatar
+                    var otherAvatar = await Avatar.new('otheravatar', helpers.NULL_ADDRESS, helpers.NULL_ADDRESS);
+                    web3.eth.sendTransaction({from:accounts[0],to:testSetup.org.avatar.address, value:20});
+                    var tx = await testSetup.contributionReward.proposeContributionReward(testSetup.org.avatar.address,
+                                                                                "description",
+                                                                                reputationReward,
+                                                                                [nativeTokenReward,ethReward,0,periodLength,numberOfPeriods],
+                                                                                testSetup.standardTokenMock.address,
+                                                                                otherAvatar.address
+                                                                                );
+                    //Vote with reputation to trigger execution
+                    var proposalId = await helpers.getValueFromLogs(tx, '_proposalId',1);
+                    await testSetup.contributionRewardParams.votingMachine.genesisProtocol.vote(proposalId,1,{from:accounts[0]});
+                    await helpers.increaseTime(periodLength+1);
+                    var arcUtils = await Redeemer.new(testSetup.contributionReward.address,testSetup.contributionRewardParams.votingMachine.genesisProtocol.address);
+                    await arcUtils.redeem(proposalId,testSetup.org.avatar.address,accounts[0]);
+                    var eth = web3.eth.getBalance(otherAvatar.address);
+                    assert.equal(eth.toNumber(),ethReward);
+                    assert.equal(await testSetup.org.reputation.reputationOf(otherAvatar.address),reputationReward);
+                    assert.equal(await testSetup.org.token.balanceOf(otherAvatar.address),nativeTokenReward);
+                    var reputation = await testSetup.org.reputation.reputationOf(accounts[0]);
+                    assert.equal(reputation,1141);
+                });
 
 
 });
