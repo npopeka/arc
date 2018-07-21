@@ -71,14 +71,14 @@ const setupContributionRewardParams = async function(
   return contributionRewardParams;
 };
 
-const setup = async function (accounts,orgNativeTokenFee=0,genesisProtocol = false,tokenAddress=0) {
+const setup = async function (accounts,orgNativeTokenFee=0,founders=[accounts[0]], foundersTokens=[1000], foundersRep=[1000], genesisProtocol = false,tokenAddress=0) {
    var testSetup = new helpers.TestSetup();
    testSetup.fee = 10;
    testSetup.standardTokenMock = await StandardTokenMock.new(accounts[1],100);
    testSetup.contributionReward = await ContributionReward.new();
    var controllerCreator = await ControllerCreator.new({gas: constants.ARC_GAS_LIMIT});
    testSetup.daoCreator = await DaoCreator.new(controllerCreator.address,{gas:constants.ARC_GAS_LIMIT});
-   testSetup.org = await helpers.setupOrganization2(testSetup.daoCreator);
+   testSetup.org = await helpers.setupOrganizationWithArrays(testSetup.daoCreator, founders, foundersTokens, foundersRep);
    testSetup.contributionRewardParams= await setupContributionRewardParams(testSetup.contributionReward,orgNativeTokenFee,accounts,genesisProtocol,tokenAddress);
    var permissions = "0x00000000";
    if (genesisProtocol) {
@@ -490,7 +490,7 @@ contract('ContributionReward', function(accounts) {
 
                    it("execute proposeContributionReward via genesisProtocol and redeem using Redeemer and non-executed proposal", async function() {
                      var standardTokenMock = await StandardTokenMock.new(accounts[0],1000);
-                     var testSetup = await setup(accounts,0,true,standardTokenMock.address);
+                     var testSetup = await setup(accounts,0,[accounts[0], accounts[1]], [1000,1000], [1000,100],true,standardTokenMock.address);
                      var reputationReward = 12;
                      var nativeTokenReward = 12;
                      var ethReward = 12;
@@ -510,11 +510,13 @@ contract('ContributionReward', function(accounts) {
                      var proposalId = await helpers.getValueFromLogs(tx, '_proposalId',1);
                      await standardTokenMock.approve(testSetup.contributionRewardParams.votingMachine.genesisProtocol.address,10);
                      await testSetup.contributionRewardParams.votingMachine.genesisProtocol.stake(proposalId,1,10);
+                     var proposalInfo = await testSetup.contributionRewardParams.votingMachine.genesisProtocol.proposals(proposalId);
+                     assert(proposalInfo[8].eq(4), `not boosted: ${proposalInfo[8].toNumber()}`);
                      await testSetup.contributionRewardParams.votingMachine.genesisProtocol.vote(proposalId,1,{from:accounts[1]});
                      await helpers.increaseTime(periodLength+1 + 2000);
                      var arcUtils = await Redeemer.new(testSetup.contributionReward.address,testSetup.contributionRewardParams.votingMachine.genesisProtocol.address);
-                     var proposalInfo = await testSetup.contributionRewardParams.votingMachine.genesisProtocol.proposals(proposalId);
-                     assert(!proposalInfo[8].eq(1) && !proposalInfo[8].eq(2));// neither executed nor closed
+                     proposalInfo = await testSetup.contributionRewardParams.votingMachine.genesisProtocol.proposals(proposalId);
+                     assert(!proposalInfo[8].eq(1) && !proposalInfo[8].eq(2), `shouldn't be executed: ${proposalInfo[8].toNumber()}`);// neither executed nor closed
                      await arcUtils.redeem(proposalId,testSetup.org.avatar.address,accounts[0]);
                      proposalInfo = await testSetup.contributionRewardParams.votingMachine.genesisProtocol.proposals(proposalId);
                      assert(proposalInfo[8].eq(2), `not executed: ${proposalInfo[8].toNumber()}`);// executed
